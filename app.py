@@ -32,28 +32,28 @@ migrate = Migrate(app, db)
 class Venue(db.Model):
     __tablename__ = 'Venue'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    address = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
+    venue_id = db.Column(db.Integer, primary_key=True)
+    venue_name = db.Column(db.String)
+    venue_city = db.Column(db.String(120))
+    venue_state = db.Column(db.String(120))
+    venue_address = db.Column(db.String(120))
+    venue_phone = db.Column(db.String(120))
+    venue_image_link = db.Column(db.String(500))
+    venue_facebook_link = db.Column(db.String(120))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
+    artist_id = db.Column(db.Integer, primary_key=True)
+    artist_name = db.Column(db.String)
+    artist_city = db.Column(db.String(120))
+    artist_state = db.Column(db.String(120))
+    artist_phone = db.Column(db.String(120))
+    artist_genres = db.Column(db.String(120))
+    artist_image_link = db.Column(db.String(500))
+    artist_facebook_link = db.Column(db.String(120))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -221,6 +221,29 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
+  error = False
+  body = {}
+  try:
+    name = request.get_json()['name']
+    list_id = request.get_json()['list_id']
+    todo = Todo(description=description)
+    active_list = TodoList.query.get(list_id)
+    todo.list = active_list
+    db.session.add(todo)
+    db.session.commit()
+    body['description'] = todo.description
+  except:
+    error = True
+    db.session.rollback()
+    print(sys.exc_info())
+  finally:
+    db.session.close()
+  if not error:
+    return jsonify(body)
+  else:
+    abort(500)
+
+
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
 
