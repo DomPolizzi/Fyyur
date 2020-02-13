@@ -41,21 +41,22 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    seeking_
+    seeking_Artist = db.Column(db.Boolean, default=False)
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
 
-    artist_id = db.Column(db.Integer, primary_key=True)
-    artist_name = db.Column(db.String)
-    artist_city = db.Column(db.String(120))
-    artist_state = db.Column(db.String(120))
-    artist_phone = db.Column(db.String(120))
-    artist_genres = db.Column(db.String(120))
-    artist_image_link = db.Column(db.String(500))
-    artist_facebook_link = db.Column(db.String(120))
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    city = db.Column(db.String(120))
+    state = db.Column(db.String(120))
+    phone = db.Column(db.String(120))
+    genres = db.Column(db.String(120))
+    image_link = db.Column(db.String(500))
+    facebook_link = db.Column(db.String(120))
+    seeking_venue = db.Column(db.Boolean, default=False)
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -96,8 +97,12 @@ def index():
 
 @app.route('/venues')
 def venues():
-  location = db.session.query(Venue.city, Venue.state)
-  venues = []
+ # location = db.session.query(Venue.city, Venue.state)
+ # venues = []
+  data=[{
+
+  }]
+  data = list(filter(lambda d: d['id'] == venue_id))[0]
   return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
@@ -105,7 +110,7 @@ def search_venues():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
- """
+
   response={
     "count": 1,
     "data": [{
@@ -114,7 +119,6 @@ def search_venues():
       "num_upcoming_shows": 0,
     }]
   }
-"""
   return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/venues/<int:venue_id>')
@@ -211,42 +215,34 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
+  # TODO: insert form data as a new Venue record in the db, instead
   form = VenueForm()
   error = False
   try:
     data = Venue(
-      name = request.get_json()['name'],
-      id = request.get_json()['id'],
-      city = request.get_json()['city'],
-      state = request.get_json()['state'],
-      address = request.get_json()['address'],
-      phone = request.get_json()['phone'],
-      image_link = request.get_json()['image_link'],
-      facebook_link = request.get_json()['facebook_link']    
+      name = form.name.data,
+      id = form.id.data,
+      city = form.city.data,
+      state = form.state.data,
+      address = form.address.data,
+      phone = form.phone.data,
+      image_link = form.image_link.data,
+      facebook_link = form.facebook_link.data    
     )
     db.session.add(data)
     db.session.commit()  
+  # TODO: modify data to be the data object returned from db insertion
+    flash('Venue ' + request.form['name'] + ' was successfully listed!')
   except:
     error = True
     db.session.rollback()
+  # TODO: on unsuccessful db insert, flash an error instead.
+    flash('An error occurred. Venue ' + data.name + ' could not be listed.')
+    return render_template('pages/home.html')
     print(sys.exc_info())
   finally:
     db.session.close()
-  if not error:
-    return jsonify(body)
-  else:
-    abort(500)
-
-
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
-
-  # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-  return render_template('pages/home.html')
+    return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
