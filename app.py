@@ -41,11 +41,9 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    seeking_
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
-
-def __repr__(self):
-    return f'<Venue {self.venue_id} {self.venue_name}>'
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -61,6 +59,13 @@ class Artist(db.Model):
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
+class Show(db.Model):
+    __tablename__ = 'Show'
+
+    show_id = db.Column(db.Integer, primary_key=True)
+    artist_id = db.Column(db.Integer, db.ForeignKey(Artist.id), nullable=False)
+    venue_id = db.Column(db.Integer, db.ForeignKey(Venue.id), nullable=False)
+    show_time = db.Column(db.DateTime())
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
 #----------------------------------------------------------------------------#
@@ -100,6 +105,7 @@ def search_venues():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+ """
   response={
     "count": 1,
     "data": [{
@@ -108,6 +114,7 @@ def search_venues():
       "num_upcoming_shows": 0,
     }]
   }
+"""
   return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/venues/<int:venue_id>')
@@ -204,19 +211,21 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
+  form = VenueForm()
   error = False
-  body = {}
   try:
-    name = request.get_json()['name']
-    id = request.get_json()['id']
-    city = request.get_json()['city']
-    state = request.get_json()['state']
-    address = request.get_json()['address']
-    phone = request.get_json()['phone']
-    image_link = request.get_json()['image_link']
-    facebook_link = request.get_json()['facebook_link']    
-    db.session.add(Venue)
-    db.session.commit()
+    data = Venue(
+      name = request.get_json()['name'],
+      id = request.get_json()['id'],
+      city = request.get_json()['city'],
+      state = request.get_json()['state'],
+      address = request.get_json()['address'],
+      phone = request.get_json()['phone'],
+      image_link = request.get_json()['image_link'],
+      facebook_link = request.get_json()['facebook_link']    
+    )
+    db.session.add(data)
+    db.session.commit()  
   except:
     error = True
     db.session.rollback()
