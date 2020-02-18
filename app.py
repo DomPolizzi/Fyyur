@@ -185,10 +185,11 @@ def create_venue_submission():
     # TODO: insert form data as a new Venue record in the db, instead
     form = VenueForm()
     error = False
+    print("About to go into venue creation")
     try:
+        print("Instantiating venue")
         data = Venue(
             name=form.name.data,
-            id=form.id.data,
             city=form.city.data,
             state=form.state.data,
             address=form.address.data,
@@ -196,11 +197,17 @@ def create_venue_submission():
             image_link=form.image_link.data,
             facebook_link=form.facebook_link.data
         )
+        print("Adding to database")
         db.session.add(data)
+        print("Committing data")
         db.session.commit()
+        print("Persisted data")
     # TODO: modify data to be the data object returned from db insertion
         flash('Venue ' + request.form['name'] + ' was successfully listed!')
-    except:
+    except Exception as e:
+        print(("Rolling back transaction"))
+        print(e)
+        print(e.args)
         error = True
         db.session.rollback()
     # TODO: on unsuccessful db insert, flash an error instead.
@@ -209,6 +216,7 @@ def create_venue_submission():
         return render_template('pages/home.html')
         print(sys.exc_info())
     finally:
+        print("Closing session")
         db.session.close()
         return render_template('pages/home.html')
 
