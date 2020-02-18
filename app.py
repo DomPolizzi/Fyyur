@@ -59,13 +59,10 @@ def index():
 
 @app.route('/venues')
 def venues():
- # location = db.session.query(Venue.city, Venue.state)
- # venues = []
-    data = [{
-
-    }]
-    data = list(filter(lambda d: d['id'] == venue_id))[0]
-    return render_template('pages/venues.html', areas=data)
+    cities = db.session.query(Venue.city, Venue.state).all()
+    venues = []
+    for city in cities: venues += db.session.query(Venue).filter(Venue.city == city[0]).filter(Venue.state == city[1]).all()
+    return render_template('pages/venues.html', areas=cities, venues=venues)
 
 
 @app.route('/venues/search', methods=['POST'])
@@ -173,12 +170,10 @@ def show_venue(venue_id):
 #  Create Venue
 #  ----------------------------------------------------------------
 
-
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
     form = VenueForm()
     return render_template('forms/new_venue.html', form=form)
-
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
@@ -219,7 +214,6 @@ def create_venue_submission():
         print("Closing session")
         db.session.close()
         return render_template('pages/home.html')
-
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
