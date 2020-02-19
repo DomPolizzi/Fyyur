@@ -27,7 +27,6 @@ migrate = Migrate(app, db)
 
 # TODO: connect to a local postgresql database
 
-SQLALCHEMY_TRACK_MODIFICATIONS = False
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
@@ -186,6 +185,7 @@ def create_venue_submission():
         data = Venue(
             name=form.name.data,
             city=form.city.data,
+            genres=form.genres.data,
             state=form.state.data,
             address=form.address.data,
             phone=form.phone.data,
