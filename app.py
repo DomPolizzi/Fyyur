@@ -60,8 +60,14 @@ def index():
 def venues():
     cities = db.session.query(Venue.city, Venue.state).all()
     venues = []
-    for city in cities: venues += db.session.query(Venue).filter(Venue.city == city[0]).filter(Venue.state == city[1]).all()
-    return render_template('pages/venues.html', areas=cities, venues=venues)
+    for city in cities:
+      venues_in_city = db.session.query(Venue.id, Venue.name).filter(Venue.city == city[0]).filter(Venue.state == city[1])
+      venues.append({
+        "city": city[0],
+        "state": city[1],
+        "venues": venues_in_city
+      })
+    return render_template('pages/venues.html', areas=venues)
 
 
 @app.route('/venues/search', methods=['POST'])
