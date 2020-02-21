@@ -216,7 +216,7 @@ def delete_venue(venue_id):
 @app.route('/artists')
 def artists():
     # TODO: replace with real data returned from querying the database
-    artists = db.session.query(Artist.name).all()
+    artists = db.session.query(Artist.name, Artist.id).all()
     return render_template('pages/artists.html', artists=artists)
 
 
@@ -241,7 +241,8 @@ def show_artist(artist_id):
     # shows the venue page with the given venue_id
     # TODO: replace with real venue data from the venues table, using venue_id
     artist = db.session.query(Artist).filter(Artist.id == artist_id).one()
-    data ={
+    print(artist)
+    data = {
         "id" : artist.id,
         "name" : artist.name,
         "city" : artist.city,
@@ -249,6 +250,7 @@ def show_artist(artist_id):
         "phone" : artist.phone,
         "facebook_link" : artist.facebook_link
     }
+    print(data)
     return render_template('pages/show_artist.html', artist=data)
 
 #  Update
