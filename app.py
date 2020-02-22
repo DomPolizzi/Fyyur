@@ -41,9 +41,10 @@ class Venue(db.Model):
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
-    website = db.Column(db.String(240))
+    website = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    seeking_Artist = db.Column(db.Boolean, default=False)
+    seeking_talent = db.Column(db.String())
+    seeking_description = db.Column(db.String())
 
 class Artist(db.Model):
     __tablename__ = 'Artist'    
@@ -57,7 +58,8 @@ class Artist(db.Model):
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     website = db.Column(db.String())
-    seeking_venue = db.Column(db.Boolean, default=False)
+    seeking_venue = db.Column(db.String())
+    seeking_description = db.Column(db.String())
 
 class Show(db.Model):
     __tablename__ = 'Show'
@@ -139,12 +141,15 @@ def show_venue(venue_id):
     data = {
         "id": venue.id,
         "name": venue.name,
+        "genres": venue.genres,
         "address": venue.address,
         "city": venue.city,
         "state": venue.state,
         "webiste": venue.website,
         "phone": venue.phone,
-        "facebook_link": venue.facebook_link
+        "facebook_link": venue.facebook_link,
+        "seeking_talent": venue.seeking_talent,
+        "seeking_description": venue.seeking_description
     }  
     return render_template('pages/show_venue.html', venue=data)
 
@@ -178,7 +183,9 @@ def create_venue_submission():
             phone=form.phone.data,
             image_link=form.image_link.data,
             website=form.website.data,
-            facebook_link=form.facebook_link.data
+            facebook_link=form.facebook_link.data,
+            seeking_talent=form.seeking_talent.data,
+            seeking_description=form.seeking_description.data
         )
         print("Adding to database")
         db.session.add(data)
@@ -245,17 +252,19 @@ def edit_venue_submission(venue_id):
     venue = db.session.query(Venue).filter(Venue.id == venue_id).one()
     
     try:
-        print("Instantiating venue")
+        print("Instantiating venue edit")
         updated_venue = {
-            name: form.name.data,
-            city: form.city.data,
-            genres: form.genres.data,
-            state: form.state.data,
-            address: form.address.data,
-            phone: form.phone.data,
-            image_link: form.image_link.data,
-            website: form.website.data,
-            facebook_link: form.facebook_link.data  
+            "name": form.name.data,
+            "city": form.city.data,
+            "genres": form.genres.data,
+            "state": form.state.data,
+            "address": form.address.data,
+            "phone": form.phone.data,
+            "image_link": form.image_link.data,
+            "website": form.website.data,
+            "facebook_link": form.facebook_link.data,
+            "seeking_talent": form.seeking_talent.data,
+            "seeking_description": form.seeking_description.data  
         }
         print("Adding to database")
         db.session.query(Venue).filter(Venue.id == venue_id).update(updated_venue)
