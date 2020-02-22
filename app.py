@@ -41,7 +41,7 @@ class Venue(db.Model):
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
-    website_link = db.Column(db.String())
+    website = db.Column(db.String(240))
     facebook_link = db.Column(db.String(120))
     seeking_Artist = db.Column(db.Boolean, default=False)
 
@@ -56,7 +56,7 @@ class Artist(db.Model):
     genres = db.Column(db.String())
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    website_link = db.Column(db.String())
+    website = db.Column(db.String())
     seeking_venue = db.Column(db.Boolean, default=False)
 
 class Show(db.Model):
@@ -142,6 +142,7 @@ def show_venue(venue_id):
         "address": venue.address,
         "city": venue.city,
         "state": venue.state,
+        "webiste": venue.website,
         "phone": venue.phone,
         "facebook_link": venue.facebook_link
     }  
@@ -176,7 +177,7 @@ def create_venue_submission():
             address=form.address.data,
             phone=form.phone.data,
             image_link=form.image_link.data,
-            website_link=form.website_link.data,
+            website=form.website.data,
             facebook_link=form.facebook_link.data
         )
         print("Adding to database")
@@ -208,12 +209,23 @@ def create_venue_submission():
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
+
+    try:
+        db.session.query(Venue).filter(Venue.id == venue_id).delete()
+        print("Committing data")
+        db.session.commit()
+        flash('Venue was Removed')
+    except:
+        flash(' an error occured, did not delete venue. ')
+
+    finally:
+        db.session.close()
     # TODO: Complete this endpoint for taking a venue_id, and using
     # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
 
     # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
     # clicking that button delete it from the db then redirect the user to the homepage
-    return None
+    return redirect(url_for('venues'))
 
 #  ---------------------------------------------------------------
 #  Edit Venue
@@ -223,6 +235,7 @@ def delete_venue(venue_id):
 def edit_venue(venue_id):
     form = VenueForm()
     venue = db.session.query(Venue).filter(Venue.id == venue_id).one()
+
     return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 
@@ -241,7 +254,7 @@ def edit_venue_submission(venue_id):
             address: form.address.data,
             phone: form.phone.data,
             image_link: form.image_link.data,
-            website_link: form.website_link.data,
+            website: form.website.data,
             facebook_link: form.facebook_link.data  
         }
         print("Adding to database")
