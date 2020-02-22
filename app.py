@@ -26,8 +26,6 @@ app.config.from_object('config')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# TODO: connect to a local postgresql database
-
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
@@ -47,9 +45,6 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
     seeking_Artist = db.Column(db.Boolean, default=False)
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
-
-
 class Artist(db.Model):
     __tablename__ = 'Artist'    
 
@@ -63,9 +58,6 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
     website_link = db.Column(db.String())
     seeking_venue = db.Column(db.Boolean, default=False)
-
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
-
 
 class Show(db.Model):
     __tablename__ = 'Show'
@@ -102,9 +94,9 @@ app.jinja_env.filters['datetime'] = format_datetime
 def index():
     return render_template('pages/home.html')
 
-
+# =================================================================
 #  Venues
-#  ----------------------------------------------------------------
+# =================================================================
 
 @app.route('/venues')
 def venues():
@@ -119,6 +111,9 @@ def venues():
       })
     return render_template('pages/venues.html', areas=venues)
 
+#  ---------------------------------------------------------------
+#  Search for Venue
+#  ----------------------------------------------------------------
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -134,11 +129,12 @@ def search_venues():
     }
     return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
+#  ---------------------------------------------------------------
+#  Define and show Venue
+#  ----------------------------------------------------------------
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
-    # shows the venue page with the given venue_id
-    # TODO: replace with real venue data from the venues table, using venue_id
     venue = db.session.query(Venue).filter(Venue.id == venue_id).one()
     data = {
         "id": venue.id,
@@ -151,6 +147,7 @@ def show_venue(venue_id):
     }  
     return render_template('pages/show_venue.html', venue=data)
 
+#  ---------------------------------------------------------------
 #  Create Venue
 #  ----------------------------------------------------------------
 
@@ -159,9 +156,13 @@ def create_venue_form():
     form = VenueForm()
     return render_template('forms/new_venue.html', form=form)
 
+#  ---------------------------------------------------------------
+#  Post Venue
+#  ----------------------------------------------------------------
+
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    # TODO: insert form data as a new Venue record in the db, instead
+   
     form = VenueForm()
     error = False
     print("About to go into venue creation")
@@ -200,6 +201,10 @@ def create_venue_submission():
         db.session.close()
         return render_template('pages/home.html')
 
+#  ---------------------------------------------------------------
+#  Delete Venue
+#  ----------------------------------------------------------------
+
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
     # TODO: Complete this endpoint for taking a venue_id, and using
@@ -209,8 +214,41 @@ def delete_venue(venue_id):
     # clicking that button delete it from the db then redirect the user to the homepage
     return None
 
-#  Artists
+#  ---------------------------------------------------------------
+#  Edit Venue
 #  ----------------------------------------------------------------
+
+@app.route('/venues/<int:venue_id>/edit', methods=['GET'])
+def edit_venue(venue_id):
+    form = VenueForm()
+    venue = {
+        "id": 1,
+        "name": "The Musical Hop",
+        "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
+        "address": "1015 Folsom Street",
+        "city": "San Francisco",
+        "state": "CA",
+        "phone": "123-123-1234",
+        "website": "https://www.themusicalhop.com",
+        "facebook_link": "https://www.facebook.com/TheMusicalHop",
+        "seeking_talent": True,
+        "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
+        "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
+    }
+    # TODO: populate form with values from venue with ID <venue_id>
+    return render_template('forms/edit_venue.html', form=form, venue=venue)
+
+
+@app.route('/venues/<int:venue_id>/edit', methods=['POST'])
+def edit_venue_submission(venue_id):
+    # TODO: take values from the form submitted, and update existing
+    # venue record with ID <venue_id> using the new attributes
+    return redirect(url_for('show_venue', venue_id=venue_id))
+
+# =================================================================
+#  Artists
+# =================================================================
+
 @app.route('/artists')
 def artists():
     # TODO: replace with real data returned from querying the database
@@ -281,32 +319,6 @@ def edit_artist_submission(artist_id):
     return redirect(url_for('show_artist', artist_id=artist_id))
 
 
-@app.route('/venues/<int:venue_id>/edit', methods=['GET'])
-def edit_venue(venue_id):
-    form = VenueForm()
-    venue = {
-        "id": 1,
-        "name": "The Musical Hop",
-        "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-        "address": "1015 Folsom Street",
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "123-123-1234",
-        "website": "https://www.themusicalhop.com",
-        "facebook_link": "https://www.facebook.com/TheMusicalHop",
-        "seeking_talent": True,
-        "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-        "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
-    }
-    # TODO: populate form with values from venue with ID <venue_id>
-    return render_template('forms/edit_venue.html', form=form, venue=venue)
-
-
-@app.route('/venues/<int:venue_id>/edit', methods=['POST'])
-def edit_venue_submission(venue_id):
-    # TODO: take values from the form submitted, and update existing
-    # venue record with ID <venue_id> using the new attributes
-    return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
 #  ----------------------------------------------------------------
@@ -357,8 +369,9 @@ def create_artist_submission():
         db.session.close()
         return render_template('pages/home.html')
 
+# =================================================================
 #  Shows
-#  ----------------------------------------------------------------
+# =================================================================
 
 @app.route('/shows')
 def shows():
@@ -423,6 +436,9 @@ def create_show_submission():
     # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
     return render_template('pages/home.html')
 
+# =================================================================
+#  Error Handlers
+# =================================================================
 
 @app.errorhandler(404)
 def not_found_error(error):
