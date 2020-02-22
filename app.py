@@ -176,6 +176,7 @@ def create_venue_submission():
             address=form.address.data,
             phone=form.phone.data,
             image_link=form.image_link.data,
+            website_link=form.website_link.data,
             facebook_link=form.facebook_link.data
         )
         print("Adding to database")
@@ -221,28 +222,48 @@ def delete_venue(venue_id):
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
     form = VenueForm()
-    venue = {
-        "id": 1,
-        "name": "The Musical Hop",
-        "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-        "address": "1015 Folsom Street",
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "123-123-1234",
-        "website": "https://www.themusicalhop.com",
-        "facebook_link": "https://www.facebook.com/TheMusicalHop",
-        "seeking_talent": True,
-        "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-        "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
-    }
-    # TODO: populate form with values from venue with ID <venue_id>
+    venue = db.session.query(Venue).filter(Venue.id == venue_id).one()
     return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-    # TODO: take values from the form submitted, and update existing
-    # venue record with ID <venue_id> using the new attributes
+    form = VenueForm(request.form)
+    venue = db.session.query(Venue).filter(Venue.id == venue_id).one()
+    
+    try:
+        print("Instantiating venue")
+        updated_venue = {
+            name: form.name.data,
+            city: form.city.data,
+            genres: form.genres.data,
+            state: form.state.data,
+            address: form.address.data,
+            phone: form.phone.data,
+            image_link: form.image_link.data,
+            website_link: form.website_link.data,
+            facebook_link: form.facebook_link.data  
+        }
+        print("Adding to database")
+        db.session.query(Venue).filter(Venue.id == venue_id).update(updated_venue)
+        
+        print("Committing data")
+        db.session.commit()
+        
+        print("Persisted data")
+        flash('Venue ' + form.name.data + ' was successfully listed!')
+    
+    except Exception as e:  
+        print(("Rolling back transaction"))
+        print(e)
+        print(e.args)
+        error = True
+        db.session.rollback()
+        flash('An error occurred. Venue ' +
+              form.name.data + ' could not be listed.')
+    finally:
+        print("Closing session")
+        db.session.close()
     return redirect(url_for('show_venue', venue_id=venue_id))
 
 # =================================================================
@@ -251,7 +272,6 @@ def edit_venue_submission(venue_id):
 
 @app.route('/artists')
 def artists():
-    # TODO: replace with real data returned from querying the database
     artists = db.session.query(Artist.name, Artist.id).all()
     return render_template('pages/artists.html', artists=artists)
 
