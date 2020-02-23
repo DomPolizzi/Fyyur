@@ -294,82 +294,18 @@ def artists():
     artists = db.session.query(Artist.name, Artist.id).all()
     return render_template('pages/artists.html', artists=artists)
 
-#  ---------------------------------------------------------------
-#  Search Artist
 #  ----------------------------------------------------------------
-
-@app.route('/artists/search', methods=['POST'])
-def search_artists():
-    search_term = request.form.get('search_term', '')
-    data = []
-    artists = db.session.query(Artist).filter(Artist.name.ilike('%' + search_term + '%')).all()
-    response = {
-        "count": len(venues),
-        "data": data
-    }
-    return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
-
-
-@app.route('/artists/<int:artist_id>')
-def show_artist(artist_id):
-    # shows the venue page with the given venue_id
-    # TODO: replace with real venue data from the venues table, using venue_id
-    artist = db.session.query(Artist).filter(Artist.id == artist_id).one()
-    print(artist)
-    data = {
-        "id" : artist.id,
-        "name" : artist.name,
-        "genres": artist.genres,
-        "city" : artist.city,
-        "state" : artist.state,
-        "phone" : artist.phone,
-        "facebook_link" : artist.facebook_link,
-        "seeking_venue" : artist.seeking_venue,
-        "seeking_description" : artist.seeking_description
-    }
-    print(data)
-    return render_template('pages/show_artist.html', artist=data)
-
-#  Update
-#  ----------------------------------------------------------------
-@app.route('/artists/<int:artist_id>/edit', methods=['GET'])
-def edit_artist(artist_id):
-    form = ArtistForm()
-    artist = {
-        "id": 4,
-        "name": "Guns N Petals",
-        "genres": ["Rock n Roll"],
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "326-123-5000",
-        "website": "https://www.gunsnpetalsband.com",
-        "facebook_link": "https://www.facebook.com/GunsNPetals",
-        "seeking_venue": True,
-        "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-        "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-    }
-    # TODO: populate form with fields from artist with ID <artist_id>
-    return render_template('forms/edit_artist.html', form=form, artist=artist)
-
-
-@app.route('/artists/<int:artist_id>/edit', methods=['POST'])
-def edit_artist_submission(artist_id):
-    # TODO: take values from the form submitted, and update existing
-    # artist record with ID <artist_id> using the new attributes
-
-    return redirect(url_for('show_artist', artist_id=artist_id))
-
-
-
 #  Create Artist
 #  ----------------------------------------------------------------
-
 
 @app.route('/artists/create', methods=['GET'])
 def create_artist_form():
     form = ArtistForm()
     return render_template('forms/new_artist.html', form=form)
 
+#  ----------------------------------------------------------------
+#  Post Artist
+#  ----------------------------------------------------------------
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
@@ -409,6 +345,120 @@ def create_artist_submission():
         print("Closing session")
         db.session.close()
         return render_template('pages/home.html')
+
+#  ---------------------------------------------------------------
+#  Search Artist
+#  ----------------------------------------------------------------
+
+@app.route('/artists/search', methods=['POST'])
+def search_artists():
+    search_term = request.form.get('search_term', '')
+    data = []
+    artists = db.session.query(Artist).filter(Artist.name.ilike('%' + search_term + '%')).all()
+    response = {
+        "count": len(artists),
+        "data": data
+    }
+    return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
+
+#  ---------------------------------------------------------------
+#  Define Artist
+#  ----------------------------------------------------------------
+
+@app.route('/artists/<int:artist_id>')
+def show_artist(artist_id):
+    artist = db.session.query(Artist).filter(Artist.id == artist_id).one()
+    print(artist)
+    data = {
+        "id" : artist.id,
+        "name" : artist.name,
+        "genres": artist.genres,
+        "city" : artist.city,
+        "state" : artist.state,
+        "phone" : artist.phone,
+        "facebook_link" : artist.facebook_link,
+        "seeking_venue" : artist.seeking_venue,
+        "seeking_description" : artist.seeking_description
+    }
+    print(data)
+    return render_template('pages/show_artist.html', artist=data)
+
+#  ---------------------------------------------------------------
+#  Edit Artist
+#  ----------------------------------------------------------------
+
+@app.route('/artists/<int:artist_id>/edit', methods=['GET'])
+def edit_artist(artist_id):
+    form = ArtistForm()
+    artist = db.session.query(Artist).filter(Artist.id == artist_id).one()
+
+    return render_template('forms/edit_artist.html', form=form, artist=artist)
+
+
+@app.route('/artists/<int:artist_id>/edit', methods=['POST'])
+def edit_artist_submission(artist_id):
+    form = ArtistForm(request.form)
+    artist = db.session.query(Artist).filter(Artist.id == artist_id).one()
+    try:
+        print("Instantiating Artist edit")
+        updated_artist = {
+            "name": form.name.data,
+            "city": form.city.data,
+            "genres": form.genres.data,
+            "state": form.state.data,
+            "address": form.address.data,
+            "phone": form.phone.data,
+            "image_link": form.image_link.data,
+            "website": form.website.data,
+            "facebook_link": form.facebook_link.data,
+            "seeking_talent": form.seeking_talent.data,
+            "seeking_description": form.seeking_description.data  
+        }
+        print("Adding to database")
+        db.session.query(Artist).filter(Artist.id == artist_id).update(updated_artist)
+        print("Committing data")
+        db.session.commit()
+        print("Persisted data")
+        flash('Artist ' + form.name.data + ' was successfully listed!')
+
+    except Exception as e:  
+        print(("Rolling back transaction"))
+        print(e)
+        print(e.args)
+        error = True
+        db.session.rollback()
+        flash('An error occurred. Artist ' +
+              form.name.data + ' could not be listed.')
+
+    finally:
+        print("Closing session")
+        db.session.close()
+    return redirect(url_for('show_artist', artist_id=artist_id))
+
+#  ---------------------------------------------------------------
+#  Delete Artist
+#  ----------------------------------------------------------------
+
+@app.route('/artists/<artist_id>', methods=['DELETE'])
+def delete_artist(artist_id):
+
+    try:
+        db.session.query(Artist).filter(Artist.id == artist_id).delete()
+        print("Committing data")
+        db.session.commit()
+        flash('Venue was Removed')
+    except:
+        flash(' an error occured, did not delete artist. ')
+
+    finally:
+        db.session.close()
+    # TODO: Complete this endpoint for taking a venue_id, and using
+    # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+
+    # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
+    # clicking that button delete it from the db then redirect the user to the homepage
+    return redirect(url_for('artist'))
+
 
 # =================================================================
 #  Shows
