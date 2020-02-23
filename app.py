@@ -122,9 +122,6 @@ def search_venues():
     search_term = request.form.get('search_term', '')
     data = []
     venues = db.session.query(Venue).filter(Venue.name.ilike('%' + search_term + '%')).all()
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for Hop should return "The Musical Hop".
-    # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
     response = {
         "count": len(venues),
         "data": data
@@ -297,19 +294,18 @@ def artists():
     artists = db.session.query(Artist.name, Artist.id).all()
     return render_template('pages/artists.html', artists=artists)
 
+#  ---------------------------------------------------------------
+#  Search Artist
+#  ----------------------------------------------------------------
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
-    # search for "band" should return "The Wild Sax Band".
+    search_term = request.form.get('search_term', '')
+    data = []
+    artists = db.session.query(Artist).filter(Artist.name.ilike('%' + search_term + '%')).all()
     response = {
-        "count": 1,
-        "data": [{
-            "id": 4,
-            "name": "Guns N Petals",
-            "num_upcoming_shows": 0,
-        }]
+        "count": len(venues),
+        "data": data
     }
     return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
 
@@ -323,10 +319,13 @@ def show_artist(artist_id):
     data = {
         "id" : artist.id,
         "name" : artist.name,
+        "genres": artist.genres,
         "city" : artist.city,
         "state" : artist.state,
         "phone" : artist.phone,
-        "facebook_link" : artist.facebook_link
+        "facebook_link" : artist.facebook_link,
+        "seeking_venue" : artist.seeking_venue,
+        "seeking_description" : artist.seeking_description
     }
     print(data)
     return render_template('pages/show_artist.html', artist=data)
