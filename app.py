@@ -464,13 +464,24 @@ def delete_artist(artist_id):
 
 @app.route('/shows')
 def shows():
-    shows = db.session.query(Show).all
+    shows = db.session.query(Show.artist_id, Show.venue_id, Show.start_time).all()
+    print(shows)
     data =[]
-    for show in data:
-        show.artist_name = db.session.query(Artist.name).filter_by(id=show.artist_id).first()[0]
-        show.venue_name = db.session.query(Venue.name).filter_by(id=show.venue_id).first()[0]
-        show.artist_image_link = db.session.query(Artist.image_link).filter_by(id=show.artist_id).first()[0]
-        venue_data.append(show)
+    print(data)
+    for show in shows:
+        artist = db.session.query(Artist.name).filter(Artist.id == show[0]).one()
+        print(artist)
+        venue = db.session.query(Venue.name).filter(Venue.id == show[1]).one()
+        print(venue)
+        data.append({
+            "artist_name":show[0],
+            "venue_name":show[1],
+            "start_time":str(show[2])
+
+        })
+        #show.venue_name = db.session.query(Venue.name).filter_by(id=show.venue_id).first()[0]
+        #show.artist_image_link = db.session.query(Artist.image_link).filter_by(id=show.artist_id).first()[0]
+        #data.append(show)
     return render_template('pages/shows.html', shows=data)
 
 
