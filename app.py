@@ -450,9 +450,7 @@ def delete_artist(artist_id):
 
     finally:
         db.session.close()
-    # TODO: Complete this endpoint for taking a venue_id, and using
-    # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
-
+   
     # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
     # clicking that button delete it from the db then redirect the user to the homepage
     return redirect(url_for('artist'))
@@ -469,19 +467,19 @@ def shows():
     data =[]
     print(data)
     for show in shows:
-        artist = db.session.query(Artist.name).filter(Artist.id == show[0]).one()
+        artist = db.session.query(Artist.name, Artist.image_link).filter(Artist.id == show[0]).one()
         print(artist)
         venue = db.session.query(Venue.name).filter(Venue.id == show[1]).one()
         print(venue)
         data.append({
-            "artist_name":show[0],
-            "venue_name":show[1],
+            "artist_id": show[0],
+            "artist_name": artist[0],
+            "artist_image_link":artist[1],
+            "venue_id": show[1],
+            "venue_name":venue[0],
             "start_time":str(show[2])
-
         })
-        #show.venue_name = db.session.query(Venue.name).filter_by(id=show.venue_id).first()[0]
-        #show.artist_image_link = db.session.query(Artist.image_link).filter_by(id=show.artist_id).first()[0]
-        #data.append(show)
+
     return render_template('pages/shows.html', shows=data)
 
 
