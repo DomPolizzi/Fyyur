@@ -41,7 +41,7 @@ class Venue(db.Model):
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
-    website = db.Column(db.String(500))
+    website = db.Column(db.String)
     facebook_link = db.Column(db.String(120))
     seeking_talent = db.Column(db.String())
     seeking_description = db.Column(db.String())
@@ -57,7 +57,7 @@ class Artist(db.Model):
     genres = db.Column(db.String())
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    website = db.Column(db.String())
+    website = db.Column(db.String)
     seeking_venue = db.Column(db.String())
     seeking_description = db.Column(db.String())
 
@@ -65,10 +65,11 @@ class Show(db.Model):
     __tablename__ = 'Show'
 
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
     start_time = db.Column(db.DateTime)
-    artist_id = db.Column(db.Integer, db.ForeignKey(Artist.id), nullable=False)
+    artist_id = db.Column(db.Integer, db.ForeignKey("Artist.id"), nullable=False)
     artist_name = db.relationship('Artist')
-    venue_id = db.Column(db.Integer, db.ForeignKey(Venue.id), nullable=False)
+    venue_id = db.Column(db.Integer, db.ForeignKey("Venue.id"), nullable=False)
     venue_name = db.relationship('Venue')
     start_time = db.Column(db.DateTime())
 
@@ -481,16 +482,39 @@ def create_shows():
 
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
-  
-    # called to create new shows in the db, upon submitting new show listing form
-    # TODO: insert form data as a new Show record in the db, instead
-
-    # on successful db insert, flash success
-    flash('Show was successfully listed!')
+    form = ShowForm(request.form)
+    error = False
+    print("About to go into Show creation")
+    try:
+        print("Instantiating Show")
+        data = Show(
+            name=form.name.data,
+            venue_id=form.venue_id.data,
+            artist_id=form.artist_id.data,
+            start_time=form.start_time.data
+        )
+        print("Adding to database")
+        db.session.add(data)
+        print("Committing data")
+        db.session.commit()
+        print("Persisted data")
+    # TODO: modify data to be the data object returned from db insertion
+        flash('Show ' + request.form['name'] + ' was successfully listed!')
+    except Exception as e:
+        print(("Rolling back transaction"))
+        print(e)
+        print(e.args)
+        error = True
+        db.session.rollback()
     # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Show could not be listed.')
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-    return render_template('pages/home.html')
+        flash('An error occurred. Show ' +
+              data.name + ' could not be listed.')
+        return render_template('pages/home.html')
+        print(sys.exc_info())
+    finally:
+        print("Closing session")
+        db.session.close()
+        return render_template('pages/home.html')
 
 # =================================================================
 #  Error Handlers
