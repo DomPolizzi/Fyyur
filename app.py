@@ -5,7 +5,15 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
+from flask import (
+    Flask,
+    render_template,
+    request,
+    Response, 
+    flash, 
+    redirect, 
+    url_for,
+)
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
@@ -83,6 +91,13 @@ def search_venues():
     search_term = request.form.get('search_term', '')
     data = []
     venues = db.session.query(Venue).filter(Venue.name.ilike('%' + search_term + '%')).all()
+    
+    for venue in venues:
+        data.append({
+            "id": venue.id,
+            "name": venue.name
+        })
+
     response = {
         "count": len(venues),
         "data": data
@@ -150,7 +165,6 @@ def create_venue_submission():
         print("Committing data")
         db.session.commit()
         print("Persisted data")
-    # TODO: modify data to be the data object returned from db insertion
         flash('Venue ' + request.form['name'] + ' was successfully listed!')
     except Exception as e:
         print(("Rolling back transaction"))
@@ -311,6 +325,13 @@ def search_artists():
     search_term = request.form.get('search_term', '')
     data = []
     artists = db.session.query(Artist).filter(Artist.name.ilike('%' + search_term + '%')).all()
+    
+    for artist in artists:
+        data.append({
+            "id": artist.id,
+            "name": artist.name
+        })
+    
     response = {
         "count": len(artists),
         "data": data
@@ -331,6 +352,7 @@ def show_artist(artist_id):
         "genres": artist.genres,
         "city" : artist.city,
         "state" : artist.state,
+        "website": artist.website,
         "phone" : artist.phone,
         "facebook_link" : artist.facebook_link,
         "seeking_venue" : artist.seeking_venue,

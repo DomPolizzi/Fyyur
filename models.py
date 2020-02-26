@@ -15,7 +15,7 @@ class Venue(db.Model):
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
-    website = db.Column(db.String)
+    website = db.Column(db.String())
     facebook_link = db.Column(db.String(120))
     seeking_talent = db.Column(db.String())
     seeking_description = db.Column(db.String())
@@ -31,7 +31,7 @@ class Artist(db.Model):
     genres = db.Column(db.String())
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    website = db.Column(db.String)
+    website = db.Column(db.String())
     seeking_venue = db.Column(db.String())
     seeking_description = db.Column(db.String())
 
