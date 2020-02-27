@@ -2,9 +2,13 @@
 # Imports
 #----------------------------------------------------------------------------#
 
-import json
-import dateutil.parser
 import babel
+import datetime
+import dateutil.parser
+import json
+import logging
+import sys
+
 from flask import (
     Flask,
     render_template,
@@ -12,17 +16,16 @@ from flask import (
     Response, 
     flash, 
     redirect, 
-    url_for,
+    url_for
 )
+from models import *
+from forms import ShowForm, VenueForm, ArtistForm
+
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
-import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from flask_migrate import Migrate
-from forms import ShowForm, VenueForm, ArtistForm
-from models import *
-import sys
 from sqlalchemy.dialects.postgresql import ARRAY
 #----------------------------------------------------------------------------#
 # App Config.
@@ -298,7 +301,6 @@ def create_artist_submission():
         print("Committing data")
         db.session.commit()
         print("Persisted data")
-    # TODO: modify data to be the data object returned from db insertion
         flash('Artist ' + request.form['name'] + ' was successfully listed!')
     except Exception as e:
         print(("Rolling back transaction"))
@@ -306,7 +308,6 @@ def create_artist_submission():
         print(e.args)
         error = True
         db.session.rollback()
-    # TODO: on unsuccessful db insert, flash an error instead.
         flash('An error occurred. Artist ' +
               data.name + ' could not be listed.')
         return render_template('pages/home.html')
@@ -331,7 +332,6 @@ def search_artists():
             "id": artist.id,
             "name": artist.name
         })
-    
     response = {
         "count": len(artists),
         "data": data
